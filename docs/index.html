@@ -1,1 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Findme Web Login</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; margin-top: 50px; }
+    #reader { width: 300px; }
+    #status { margin-top: 20px; font-weight: bold; color: green; }
+  </style>
+</head>
+<body>
+  <h2>Scan QR to Link Device</h2>
+  <div id="reader"></div>
+  <div id="status"></div>
+
+  <script>
+    const scanner = new Html5Qrcode("reader");
+
+    function onScanSuccess(decodedText, decodedResult) {
+      document.getElementById("status").innerText = "Logging in...";
+      scanner.stop().then(() => {
+        // Send decodedText (sessionToken) to backend to link device
+        fetch("https://your-backend.com/api/link-device", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sessionToken: decodedText })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            localStorage.setItem("chatToken", data.chatToken);
+            window.location.href = "/chat"; // or your main web UI
+          } else {
+            document.getElementById("status").innerText = "Invalid or expired token.";
+          }
+        });
+      });
+    }
+
+    scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: 250 }, onScanSuccess);
+  </script>
+</body>
+</html>
 
